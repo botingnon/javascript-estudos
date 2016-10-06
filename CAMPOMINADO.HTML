@@ -287,6 +287,9 @@
 			var nouse = 0;
 			var findBomb = 0;
 			var hideBomb = 0;
+			var numSquare = boardWidth * boardWidth;
+			var numFreeSquare = numSquare - numBombs;
+
 			for (var x = 0; x < boardWidth; x++) {
 				for (var y = 0; y < boardHeigth; y++) {
 					var el = document.getElementById('td_' + x + "_" + y);
@@ -323,20 +326,8 @@
 				console.log('findBomb', findBomb);
 			}
 
-			if (findBomb == numBombs) {
-				gameOff = true;
-				openAll(false);
-				alert('WIN');
-				return;
-			}
-
-			if (nouse == numBombs && ((clicked + nouse) == (boardWidth * boardHeigth))) {
-				gameOff = true;
-				alert('WIN');
-				return;
-			}
-
-			if ((nouse + marked) - findBomb == numBombs) {
+			if (numFreeSquare == clicked) {
+				console.log('WIN by numFreeSquare');
 				gameOff = true;
 				alert('WIN');
 				return;
