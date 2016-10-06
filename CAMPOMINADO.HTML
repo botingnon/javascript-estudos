@@ -59,6 +59,10 @@
 		.flag {
 			background-color: blue;
 		}
+
+		.error {
+			background-color: red;
+		}
 	</style>
 </head>
 <body>
@@ -334,6 +338,19 @@
 			}
 		}
 
+		function checkInvalidFlags() {
+			for (var x = 0; x < boardWidth; x++) {
+				for (var y = 0; y < boardHeigth; y++) {
+					var el = document.getElementById('td_' + x + "_" + y);
+					var value = board[x][y];
+					if (el.classList.contains('flag') && value != BOMBER_ID) {
+						el.classList.add('error');
+						el.innerHTML = "*";
+					}
+				}
+			}			
+		}
+
 		function openAll(onlyBombs) {
 			for (var x = 0; x < boardWidth; x++) {
 				for (var y = 0; y < boardHeigth; y++) {
@@ -367,6 +384,7 @@
 					alert("BOOOM");
 					value = "*";
 					gameOff = true;
+					checkInvalidFlags();
 					break;
 			}
 
