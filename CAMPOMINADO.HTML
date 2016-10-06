@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type="text/css">
+		* {
+			font-size: 30px;
+		}
+
+		button {
+			font-size: 15px;
+			cursor: pointer;	
+		}
+
+		table {
+			width: 100%;
+			table-layout : fixed;
+			left: 0;
+		}
+		
+		td {
+			border: 1px #000 solid;
+			cursor: pointer;
+			text-align: center;
+			/*width: 10%;*/
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
+
+		.bg {
+			background-color: #aaa;
+		}
+
+		.clicked {
+			background-color: #FFF;
+		}
+
+		.orange {
+			color: orange;
+		}
+
+		.red {
+			color: red;
+		}
+
+		.brown  {
+			color: #A52A2A;
+		}
+
+		.darkred {
+			color: #8B0000;
+		}
+
+		.flag {
+			background-color: blue;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var debug = false;
+		var nivel = parseInt(prompt("Escolha o nivel: 1 ou 2")) || 1;
+		var boardWidth = 9;
+		var numBombs = 10;
+		if (nivel == 2) {
+			boardWidth = 16;
+			numBombs = 40
+		}
+		var boardHeigth = boardWidth;
+		var BOMBER_ID = 9;
+		var gameOff = false;
+		var markFlags = numBombs;
+
+		// Criar Board
+		var board = [];
+		for (var x = 0; x < boardWidth; x++) {
+			board[x] = [];
+			for (var y = 0; y < boardHeigth; y++) {
+				board[x][y] = 0;
+			}
+		}
+
+		// Cria as bombas
+		for (var b = 0; b < numBombs; b++) {
+			var x = Math.floor(Math.random() * boardWidth);
+			var y = Math.floor(Math.random() * boardHeigth);
+			if (board[x][y] == 0) {
+				board[x][y] = BOMBER_ID;
+			} else {
+				b--;
+			}
+		}
+
+		// Renderiza o board
+		function cellValue(board, x, y) {  
+			if (board[x][y] == BOMBER_ID) {
+				return BOMBER_ID;
+			}
+
+			var value = 0;
+
+			// Verificar linha de cima
+			if (y > 0) { // Tem linha acima
+				if (x > 0 && board[x - 1][y - 1] == BOMBER_ID) { // TE
+					value++;
+				}
+
+				if (board[x][y - 1] === BOMBER_ID) { // T
+					value++;
+				}
+
+				if (x < (boardWidth - 1) && board[x + 1][y - 1] == BOMBER_ID) { // TD
+					value++;
+				}
+			}
+
+			// Verifica dos lados
+			if (x < (boardWidth - 1) && board[x + 1][y] == BOMBER_ID) { // D
+				value++;
+			}
+
+			if (x > 0 && board[x - 1][y] == BOMBER_ID) { // D
+				value++;
+			}
+
+			// Verificar linha de baixo
+			if (y < (boardHeigth - 1)) { // Tem linha abaixo
+				if (x > 0 && board[x - 1][y + 1] == BOMBER_ID) { // BE
+					value++;
+				}
+
+				if (board[x][y + 1] === BOMBER_ID) { // B
+					value++;
+				}
+
+				if (x < (boardWidth - 1) && board[x + 1][y + 1] == BOMBER_ID) { // BD
+					value++;
+				}
+			}
+
+			return value;
+		}
+
+		function openBlank(clickX, clickY, oldValue) {
+			// topo
+			var x = clickX;
+			var y = clickY - 1;
+			if (y >= 0) {
+				var value = board[x][y];
+				var el = document.getElementById('td_' + x + "_" + y);
+				if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+					if (oldValue == 0) {
+						open(el, value);
+						openBlank(x, y, value);
+					}
+				}
+
+				// Diagonal Esquerda
+				var x = clickX - 1;
+				if (x >= 0) {
+					var value = board[x][y];
+					var el = document.getElementById('td_' + x + "_" + y);
+					if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+						if (oldValue == 0) {
+							open(el, value);
+							openBlank(x, y, value);
+						}
+					}
+				}
+
+				// Diagonal Direita
+				var x = clickX + 1;
+				if (x < boardWidth) {
+					var value = board[x][y];
+					var el = document.getElementById('td_' + x + "_" + y);
+					if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+						if (oldValue == 0) {
+							open(el, value);
+							openBlank(x, y, value);
+						}
+					}
+				}
+			}
+
+			// Baixo
+			var x = clickX;
+			var y = clickY + 1;
+			if (y < boardHeigth) {
+				var value = board[x][y];
+				var el = document.getElementById('td_' + x + "_" + y);
+				if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+					if (oldValue == 0) {
+						open(el, value);
+						openBlank(x, y, value);
+					}
+				}
+
+				// Diagonal Esquerda
+				var x = clickX + 1;
+				if (x < boardWidth) {
+					var value = board[x][y];
+					var el = document.getElementById('td_' + x + "_" + y);
+					if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+						if (oldValue == 0) {
+							open(el, value);
+							openBlank(x, y, value);
+						}
+					}
+				}
+
+				// Diagonal Direita
+				var x = clickX - 1;
+				if (x >= 0) {
+					var value = board[x][y];
+					var el = document.getElementById('td_' + x + "_" + y);
+					if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+						if (oldValue == 0) {
+							open(el, value);
+							openBlank(x, y, value);
+						}
+					}
+				}
+			}
+
+			// Direita
+			var x = clickX + 1;
+			var y = clickY;
+			if (x < boardWidth) {
+				var value = board[x][y];
+				var el = document.getElementById('td_' + x + "_" + y);
+				if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+					if (oldValue == 0) {
+						open(el, value);
+						openBlank(x, y, value);
+					}
+				}
+			}
+
+			// Esquerda
+			var x = clickX - 1;
+			var y = clickY;
+			if (x >= 0) {
+				var value = board[x][y];
+				var el = document.getElementById('td_' + x + "_" + y);
+				if (el.classList.contains('clicked') == false && el.classList.contains('flag') == false) {
+					if (oldValue == 0) {
+						open(el, value);
+						openBlank(x, y, value);
+					}
+				}
+			}
+		}
+
+		function open(el, value) {
+			switch(value) {
+				case 0:
+					value = '&nbsp;';
+					break;
+				case 2:
+					el.classList.add("orange");
+					break;
+				case 3:
+					el.classList.add("red");
+					break;
+				case 4:
+					el.classList.add("brown");
+					break;
+				case 5:
+					el.classList.add("darkred");
+					break;
+			}
+
+			el.classList.remove('flag');
+			el.classList.add("clicked");
+
+			el.innerHTML = value;
+		}
+
+		function checkWin() {
+			var clicked = 0;
+			var marked = 0;
+			var nouse = 0;
+			var findBomb = 0;
+			var hideBomb = 0;
+			for (var x = 0; x < boardWidth; x++) {
+				for (var y = 0; y < boardHeigth; y++) {
+					var el = document.getElementById('td_' + x + "_" + y);
+					var value = board[x][y];
+					if (el.classList.contains('clicked')) {
+						clicked++;
+						if (value == 9) {
+							findBomb++;
+						}
+					}
+
+					if (el.classList.contains('flag')) {
+						marked++;
+						if (value == 9) {
+							findBomb++;
+						}
+					}
+
+					if (!el.classList.contains('clicked') && !el.classList.contains('flag')) {
+						nouse++;
+						if (value == 9) {
+							hideBomb++;
+						}
+					}
+				}
+			}
+
+			if (debug) {
+				console.clear();
+				console.log('clicked', clicked);
+				console.log('marked', marked);
+				console.log('nouse', nouse);
+				console.log('hideBomb', hideBomb);
+				console.log('findBomb', findBomb);
+			}
+
+			if (findBomb == numBombs) {
+				gameOff = true;
+				openAll(false);
+				alert('WIN');
+				return;
+			}
+
+			if (nouse == numBombs && ((clicked + nouse) == (boardWidth * boardHeigth))) {
+				gameOff = true;
+				alert('WIN');
+				return;
+			}
+
+			if ((nouse + marked) - findBomb == numBombs) {
+				gameOff = true;
+				alert('WIN');
+				return;
+			}
+		}
+
+		function openAll(onlyBombs) {
+			for (var x = 0; x < boardWidth; x++) {
+				for (var y = 0; y < boardHeigth; y++) {
+					var el = document.getElementById('td_' + x + "_" + y);
+					var value = board[x][y];
+					if (!el.classList.contains('clicked') && !el.classList.contains('flag')) {
+						if (onlyBombs) {
+							if (value == 9) {
+								open(el, '*');
+							}
+						} else {
+							open(el, value);
+						}
+					}
+				}
+			}
+		}
+
+		function action(x, y, el) {
+			if (el.classList.contains('clicked') || el.classList.contains('flag') || gameOff) {
+			    return;
+			}
+
+			var value = board[x][y];
+			
+			switch(value) {
+				case 0:
+					openBlank(x, y, value);
+					break;
+				case 9:
+					alert("BOOOM");
+					value = "*";
+					gameOff = true;
+					break;
+			}
+
+			open(el, value);
+
+			if (!gameOff) {
+				checkWin();
+			} else {
+				openAll(true);
+			}
+		}
+
+		function markFlag(x, y, el) {
+			if (el.classList.contains('clicked') || gameOff) {
+			    return false;
+			}
+
+			if (el.classList.contains('flag')) {
+				el.classList.remove("flag");
+				markFlags++;
+			} else {
+				el.classList.add("flag");	
+				markFlags--;
+			}
+
+			document.getElementById('span_bombs').innerHTML = markFlags;
+
+			checkWin();
+
+			return false;
+		}
+
+		document.write("<table>");
+		document.write("<tr>");
+		document.write("<td>BOMBAS: <span id='span_bombs'>" + markFlags + "</span></td>");
+		document.write("<td><button type='button' onclick='document.location = document.location'>REINICIAR</button></td>");
+		document.write("</tr>");
+		document.write("</table>");
+
+		document.write("<table>");
+		for (var y = 0; y < boardWidth; y++) { // linha
+			document.write("<tr>");
+			for (var x = 0; x < boardHeigth; x++) { // coluna
+				board[x][y] = cellValue(board, x, y);
+				document.write("<td id='td_" + x + "_" + y + "' oncontextmenu='return markFlag(" + x + "," + y + ", this)' class='bg' onclick='action(" + x + "," + y + ", this);'>" + (debug ? board[x][y] : '&nbsp;') + "</td>");
+			}
+			document.write("</tr>");
+		}
+		document.write("</table>");
+	</script>
+</body>
+</html>
